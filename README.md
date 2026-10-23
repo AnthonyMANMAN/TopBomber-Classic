@@ -80,3 +80,11 @@ Daily labels roll over at **18:00 America/Toronto**, so October 23 at 18:00 or l
 - `filter=all` with 30-day `score` and `killsMob` was reported HTTP 200 by the game.
 - Daily (`period=today`), all-time (`period=all`), and Hoarders (`sort=hoarders`) remain unverified: a 400 error on those boards still needs the exact in-game Network request to correct them. No unrelated period data is substituted.
 - Rank icons remain the original individual PNG crops, and skin thumbnails fall back to the game's default skin.
+
+
+## Last 7 days (confirmed October 23, 2026)
+
+The US Climbers request is confirmed HTTP 200:
+`/api/v3/stat/top?period=prev7days&filter=US&sort=score&from=0&count=25&auth=b`
+
+Added **Last 7 days** navigation, accepted `prev7days` API routes, and scheduled collection of 7-day score for ALL/EU/US/RU/BR/Asia. Other region combinations are attempted but not independently verified. On-demand fetching fills missing first-load snapshots.
