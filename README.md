@@ -88,3 +88,7 @@ The US Climbers request is confirmed HTTP 200:
 `/api/v3/stat/top?period=prev7days&filter=US&sort=score&from=0&count=25&auth=b`
 
 Added **Last 7 days** navigation, accepted `prev7days` API routes, and scheduled collection of 7-day score for ALL/EU/US/RU/BR/Asia. Other region combinations are attempted but not independently verified. On-demand fetching fills missing first-load snapshots.
+
+## Hoarders columns
+
+The Hoarders table renders three separate numeric columns in this exact order: **Plutonium**, **Balls**, **Gold**. Null or absent values display 0. The parser preserves the upstream field names (`plut`, `balls`, `gold`) and ALL nickname aggregation adds them independently. The upstream `sort=hoarders` parameter remains unverified and may return HTTP 400; this update is a presentation/data-field correction, not a claim that it is a valid upstream sort.

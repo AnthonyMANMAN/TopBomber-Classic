@@ -75,3 +75,16 @@ test('duplicate Monster Hunters kills add up on ALL',async()=>{
  assert.equal(result.rows[0].killsMob,27);
  assert.equal(result.rows[0].nickname,'Twin');
 });
+
+test('hoarders ALL adds plutonium balls and gold separately',async()=>{
+ const {aggregateAllByNickname}=await import('../lib/leaderboard.js');
+ const board=aggregateAllByNickname({rows:[
+  {nickname:'Twin',plut:10,balls:3,gold:20,rank:4},
+  {nickname:'Twin',plut:15,balls:7,gold:6,rank:9},
+  {nickname:'Another',plut:9,balls:90,gold:300,rank:2}
+ ],total:3},'hoarders');
+ assert.equal(board.rows[0].nickname,'Twin');
+ assert.equal(board.rows[0].plut,25);
+ assert.equal(board.rows[0].balls,10);
+ assert.equal(board.rows[0].gold,26);
+});
