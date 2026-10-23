@@ -59,3 +59,10 @@ No bsession cookie or login credential is stored or transmitted by our code. Onl
 
 ### Rank image display fix
 The original horizontal atlas is preserved at `public/assets/ranks.png`, and 16 transparent PNG crops are under `public/assets/ranks/`. The leaderboard displays the individual PNGs with no numeric rank label. If Netlify shows an older version, redeploy and hard-refresh (`Ctrl+Shift+R`). Check `/assets/ranks/rank-15.png` to confirm the PNG was deployed.
+
+### Official ALL leaderboard and skin fallback
+ALL now uses the game leaderboard request `filter=all` (not a calculated merge of regional rankings). If the upstream ALL request fails, the API returns an error rather than silently fabricating an aggregate. Existing cached merged ALL snapshots are invalidated on request and replaced after a successful official fetch. Player skin thumbnails use `/api/ctor/getskin?name=<skin>&thumb=1` and fall back to `name=default` if the skin is missing or fails.
+
+## ALL leaderboard nickname aggregation
+
+The original game `filter=all` response remains the data source. When that response contains the same exact nickname more than once, TopBomber combines its rows into a single entry and adds numeric scoring statistics (including player kills, bot kills, deaths, rounds, and score), then re-sorts and re-numbers the ALL leaderboard. The highest rank icon and first available non-default skin are retained. Regional leaderboards are unchanged. Existing ALL snapshots are normalized when read, so redeployment upgrades saved boards without double counting them. **This matches nicknames, not stable account IDs:** two different accounts with an identical nickname would also be combined. Partial upstream snapshots can omit matches outside captured pages; collection is still limited by its configured page budget.
