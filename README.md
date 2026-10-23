@@ -53,3 +53,6 @@ No bsession cookie or login credential is stored or transmitted by our code. Onl
 - Scheduled collection uses 6 bounded workers instead of sequentially requesting 36 boards; each successful board is saved immediately.
 - Deploy **the entire repository** through Netlify's Git integration. After deploy, open `/.netlify/functions/data/status` and check `collect` Function logs for errors.
 - The game's endpoint may reject some combinations, or block calls from Netlify. If the first-load board shows 503, inspect function logs; this is separate from the route bug.
+
+## Rank sprites (horizontal atlas)
+`public/assets/ranks.png` is the provided 286×16 atlas. The site crops ranks 0–15 using the exact x/y/width/height coordinates supplied. Edit `RANK_CROPS` in `public/js/app.js` to change crops.
