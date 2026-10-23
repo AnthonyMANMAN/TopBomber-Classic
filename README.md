@@ -21,7 +21,7 @@ Known endpoint: `https://gameofbombs.com/api/v3/stat/top?period=prev30days&filte
 
 The app assumes `period=today` and `period=all`, `sort=score|kills|hoarders` and filters `ALL|EU|US|RU|BR|Asia` (these values have not all been verified). Inspect function logs for rejected combinations. It *never* invents scores. Some API filters may be lowercase; edit `lib/config.js` once confirmed. **Check the live API before publicly promoting historical accuracy.**
 
-Each scheduled run currently fetches **up to 100 players per board**, across 6 regions × 3 categories × 2 periods (36 boards). This bounded default avoids hundreds of requests per run. For all 1,000 reported rows, implement a queue/background function and staggered page collection; simply raising the limit could exceed the Netlify execution limit or game rate limits. Individual failures are logged and do not replace good snapshots.
+Each scheduled run fetches **up to 25 players per board**, across 6 regions × 3 categories × 2 periods (36 boards) using 6 concurrent workers. This bounded default avoids hundreds of requests per run. For all 1,000 reported rows, implement a queue/background function and staggered page collection; simply raising the limit could exceed the Netlify execution limit or game rate limits. Individual failures are logged and do not replace good snapshots.
 
 ## Daily archive caveat
 
@@ -45,3 +45,11 @@ No bsession cookie or login credential is stored or transmitted by our code. Onl
 - `lib/config.js` — region/category and reset configuration
 - `public/` — HTML, CSS and JS frontend
 - `tests/` — basic parsing and reset tests
+
+## Fixes for first-deploy 404 / empty history URLs
+
+- A missing latest board is now fetched on-demand (up to 25 entries) and saved, rather than returning 404 before the first scheduled job. An upstream failure is shown as 503 with a reason.
+- Archive view no longer calls `/api/history//...` when no dates exist. It displays an explanatory empty state.
+- Scheduled collection uses 6 bounded workers instead of sequentially requesting 36 boards; each successful board is saved immediately.
+- Deploy **the entire repository** through Netlify's Git integration. After deploy, open `/.netlify/functions/data/status` and check `collect` Function logs for errors.
+- The game's endpoint may reject some combinations, or block calls from Netlify. If the first-load board shows 503, inspect function logs; this is separate from the route bug.
