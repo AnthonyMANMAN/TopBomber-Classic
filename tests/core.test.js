@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {decodeBoard} from '../lib/leaderboard.js';import {gameDay} from '../lib/config.js';
+test('decode key-indexed arrays',()=>{const o=decodeBoard({total:1,keys:['rank','skin','nickname','score'],data:[[14,'abc','Exemplary',250910]]});assert.equal(o.rows[0].nickname,'Exemplary');assert.equal(o.rows[0].score,250910);assert.equal(o.rows[0].place,1)});
+test('game day rollover Toronto',()=>{assert.equal(gameDay(new Date('2026-10-23T22:45:00Z')),'2026-10-23');assert.equal(gameDay(new Date('2026-10-23T23:05:00Z')),'2026-10-24')});
