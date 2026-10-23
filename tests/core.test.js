@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {decodeBoard} from '../lib/leaderboard.js';import {gameDay} from '../lib/config.js';
 test('decode key-indexed arrays',()=>{const o=decodeBoard({total:1,keys:['rank','skin','nickname','score'],data:[[14,'abc','Exemplary',250910]]});assert.equal(o.rows[0].nickname,'Exemplary');assert.equal(o.rows[0].score,250910);assert.equal(o.rows[0].place,1)});
-test('game day rollover Toronto',()=>{assert.equal(gameDay(new Date('2026-10-23T22:45:00Z')),'2026-10-23');assert.equal(gameDay(new Date('2026-10-23T23:05:00Z')),'2026-10-24')});
+test('game day rollover Toronto',()=>{assert.equal(gameDay(new Date('2026-10-23T21:45:00Z')),'2026-10-23');assert.equal(gameDay(new Date('2026-10-23T23:05:00Z')),'2026-10-24')});
 
 test('official ALL filter uses lowercase all rather than combining regions',async()=>{
  const {fetchBoard}=await import('../lib/leaderboard.js');
@@ -42,4 +42,36 @@ test('ALL adds hunters numeric statistics, not ranks', async () => {
  assert.equal(result.rows[0].deaths,11);
  assert.equal(result.rows[0].roundsPlayed,14);
  assert.equal(result.rows[0].rank,9);
+});
+
+test('6 PM Toronto reset: October 23 evening belongs to October 24', () => {
+ assert.equal(gameDay(new Date('2026-10-23T21:59:59Z')), '2026-10-23');
+ assert.equal(gameDay(new Date('2026-10-23T22:00:00Z')), '2026-10-24');
+ assert.equal(gameDay(new Date('2026-10-23T23:05:00Z')), '2026-10-24');
+});
+
+test('upstream 400 includes rejected parameters and is not retried',async()=>{
+ const {fetchBoard}=await import('../lib/leaderboard.js');
+ let hits=0;
+ await assert.rejects(()=>fetchBoard({period:'today',region:'EU',sort:'hoarders',maxRows:25,fetchImpl:async()=>{hits++;return {ok:false,status:400,text:async()=>'{"message":"invalid sort"}'};}}), /Upstream 400 for period=today, filter=EU, sort=hoarders/);
+ assert.equal(hits,1);
+});
+
+
+test('confirmed 30-day official ALL Monster Hunters request', async()=>{
+ const {fetchBoard}=await import('../lib/leaderboard.js');
+ let requested;
+ const fetchImpl=async url=>{requested=new URL(url);return {ok:true,json:async()=>({total:2,keys:['rank','skin','nickname','killsMob','tibiaId','lolId'],data:[[14,'default','Exemplary',7862],[7,null,'Guest',3287]]})};};
+ const result=await fetchBoard({period:'prev30days',region:'ALL',sort:'killsMob',fetchImpl,maxRows:25});
+ assert.equal(requested.searchParams.get('period'),'prev30days');
+ assert.equal(requested.searchParams.get('filter'),'all');
+ assert.equal(requested.searchParams.get('sort'),'killsMob');
+ assert.equal(result.rows[0].killsMob,7862);
+});
+
+test('duplicate Monster Hunters kills add up on ALL',async()=>{
+ const {aggregateAllByNickname}=await import('../lib/leaderboard.js');
+ const result=aggregateAllByNickname({rows:[{nickname:'Twin',killsMob:12,rank:8},{nickname:'Twin',killsMob:15,rank:9},{nickname:'Other',killsMob:20,rank:1}],total:3},'killsMob');
+ assert.equal(result.rows[0].killsMob,27);
+ assert.equal(result.rows[0].nickname,'Twin');
 });

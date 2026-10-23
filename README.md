@@ -25,7 +25,7 @@ Each scheduled run fetches **up to 25 players per board**, across 6 regions × 3
 
 ## Daily archive caveat
 
-`GAME_TIMEZONE` defaults to `America/Toronto` and game day rollover is set to 19:00 local time. Reset is approximate. On an actual delayed or earlier reset, a snapshot could belong to the wrong date. The archived record is the **last successfully captured** snapshot of the game day, not a guarantee of the exact final official standings. History starts after deployment; historical data cannot be reconstructed automatically.
+`GAME_TIMEZONE` defaults to `America/Toronto` and game day rollover is set to 18:00 local time. Reset is set to 6 PM Toronto local time according to the observed game rollover. On an actual delayed or earlier reset, a snapshot could belong to the wrong date. The archived record is the **last successfully captured** snapshot of the game day, not a guarantee of the exact final official standings. History starts after deployment; historical data cannot be reconstructed automatically.
 
 ## Sprites and styling
 
@@ -66,3 +66,17 @@ ALL now uses the game leaderboard request `filter=all` (not a calculated merge o
 ## ALL leaderboard nickname aggregation
 
 The original game `filter=all` response remains the data source. When that response contains the same exact nickname more than once, TopBomber combines its rows into a single entry and adds numeric scoring statistics (including player kills, bot kills, deaths, rounds, and score), then re-sorts and re-numbers the ALL leaderboard. The highest rank icon and first available non-default skin are retained. Regional leaderboards are unchanged. Existing ALL snapshots are normalized when read, so redeployment upgrades saved boards without double counting them. **This matches nicknames, not stable account IDs:** two different accounts with an identical nickname would also be combined. Partial upstream snapshots can omit matches outside captured pages; collection is still limited by its configured page budget.
+
+## October 23 correction / upstream 400 troubleshooting
+
+Daily labels roll over at **18:00 America/Toronto**, so October 23 at 18:00 or later is **game day 2026-10-24**. The function calculates this using time-zone rules (including daylight saving). Existing archived snapshots are **not migrated or relabeled automatically**: if any were stored under the old 7 PM boundary, they should be inspected before treating the archive as canonical.
+
+`Upstream 400` means the game's API rejected a period/filter/sort combination. The client now displays the combination and, when supplied, a short response from the game server, and no longer obscures which parameter set failed. The only combination independently verified from the request supplied was `period=prev30days&filter=EU&sort=score`. The site's additional values `today`, `all`, and `hoarders` are not yet verified; consult the browser's Network panel while selecting those tabs in the live game to determine the **exact** API values. Do not substitute `prev30days` for `today`; that would mislabel player stats. Failed scheduled tasks do not erase prior snapshots.
+
+
+### Verified API update (2026-10-23)
+- Added 30-day ranking view, using the confirmed `period=prev30days`.
+- Added **Monster Hunters** using the confirmed `sort=killsMob`; response field `killsMob`. This is **not** the Hoarders category.
+- `filter=all` with 30-day `score` and `killsMob` was reported HTTP 200 by the game.
+- Daily (`period=today`), all-time (`period=all`), and Hoarders (`sort=hoarders`) remain unverified: a 400 error on those boards still needs the exact in-game Network request to correct them. No unrelated period data is substituted.
+- Rank icons remain the original individual PNG crops, and skin thumbnails fall back to the game's default skin.
