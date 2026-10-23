@@ -3,3 +3,7 @@
 
 /* Original 286x16 horizontal rank atlas, rank 0–15. */
 .rank-icon-box{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex-shrink:0}.rank-icon-sprite{display:block;flex-shrink:0;background-image:url("/assets/ranks.png");background-repeat:no-repeat;image-rendering:pixelated}.rank-icon{background-image:none}
+
+/* Exact cropped game rank PNGs (no numeric rank label) */
+.rank-png{width:16px;height:16px;object-fit:contain;image-rendering:pixelated;vertical-align:middle;display:inline-block}
+.ranknum{display:none!important}

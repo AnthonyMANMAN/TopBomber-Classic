@@ -56,3 +56,6 @@ No bsession cookie or login credential is stored or transmitted by our code. Onl
 
 ## Rank sprites (horizontal atlas)
 `public/assets/ranks.png` is the provided 286×16 atlas. The site crops ranks 0–15 using the exact x/y/width/height coordinates supplied. Edit `RANK_CROPS` in `public/js/app.js` to change crops.
+
+### Rank image display fix
+The original horizontal atlas is preserved at `public/assets/ranks.png`, and 16 transparent PNG crops are under `public/assets/ranks/`. The leaderboard displays the individual PNGs with no numeric rank label. If Netlify shows an older version, redeploy and hard-refresh (`Ctrl+Shift+R`). Check `/assets/ranks/rank-15.png` to confirm the PNG was deployed.
