@@ -1,6 +1,7 @@
 import {REGIONS,SORTS,PERIODS,gameDay,boardKey} from '../../lib/config.js';
 import {read,write} from '../../lib/storage.js';
 import {fetchBoard,aggregateAllByNickname} from '../../lib/leaderboard.js';
+import {getAllTimeRecords} from '../../lib/alltime.js';
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
 export default async request=>{
  try{
@@ -11,6 +12,7 @@ export default async request=>{
   if(seg[0]==='board'){
    const [_,period,region,sort]=seg;
    if(!PERIODS.includes(period)||!REGIONS.includes(region)||!SORTS.includes(sort))return json({error:'Unknown selection'},400);
+   if(period==='all')return json(await getAllTimeRecords(region,sort));
    const key=`latest/${boardKey(period,region,sort)}`;
    const snapshot=await read(key);
    if(snapshot && !(region==='ALL' && /Combined regional/i.test(snapshot.source||'')))return json(region==='ALL' ? aggregateAllByNickname(snapshot,sort) : snapshot);
