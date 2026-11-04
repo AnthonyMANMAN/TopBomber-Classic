@@ -2,6 +2,7 @@ import {REGIONS,SORTS,PERIODS,gameDay,boardKey} from '../../lib/config.js';
 import {read,write} from '../../lib/storage.js';
 import {fetchBoard,aggregateAllByNickname} from '../../lib/leaderboard.js';
 import {getAllTimeRecords} from '../../lib/alltime.js';
+import {rankHoarders} from '../../lib/hoarders.js';
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
 export default async request=>{
  try{
@@ -15,7 +16,7 @@ export default async request=>{
    if(period==='all')return json(await getAllTimeRecords(region,sort));
    const key=`latest/${boardKey(period,region,sort)}`;
    const snapshot=await read(key);
-   if(snapshot && !(region==='ALL' && /Combined regional/i.test(snapshot.source||'')))return json(region==='ALL' ? aggregateAllByNickname(snapshot,sort) : snapshot);
+   if(snapshot && !(region==='ALL' && /Combined regional/i.test(snapshot.source||'')))return json(region==='ALL' ? aggregateAllByNickname(snapshot,sort) : (sort==='hoarders'?rankHoarders(snapshot):snapshot));
    // Seed a new deployment on first visit. A failed upstream fetch returns 503, not a misleading 404.
    try{
     const board=await fetchBoard({period,region,sort,maxRows:25});
@@ -27,14 +28,14 @@ export default async request=>{
       const days=await read('meta/days')||[];
       if(!days.includes(day))await write('meta/days',[day,...days]);
     }
-    return json(record);
+    return json(sort==='hoarders'?rankHoarders(record):record);
    }catch(e){console.error('Initial board fetch failed',e);return json({error:`No stored snapshot; initial fetch failed: ${String(e.message||e)}`},503)}
   }
   if(seg[0]==='history'){
    const [_,day,region,sort]=seg;
    if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||!REGIONS.includes(region)||!SORTS.includes(sort))return json({error:'Invalid history selection'},400);
    const result=await read(`history/${day}/${region}/${sort}`);
-   return result?json(region==='ALL' ? aggregateAllByNickname(result,sort) : result):json({error:'No saved snapshot for this day'},404);
+   return result?json(region==='ALL' ? aggregateAllByNickname(result,sort) : (sort==='hoarders'?rankHoarders(result):result)):json({error:'No saved snapshot for this day'},404);
   }
   return json({error:'Not found'},404);
  }catch(e){console.error(e);return json({error:'Storage or upstream temporarily unavailable'},503)}
